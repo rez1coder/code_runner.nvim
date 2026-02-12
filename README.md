@@ -6,7 +6,7 @@
 
 ## Introduction
 
-When I was still in college it was common to try multiple programming languages, at that time I used vscode that with a single plugin allowed me to run many programming languages, I left the ballast that are electron apps and switched to neovim, I searched the Internet and finally i found a lot of plugins, but none of them i liked (maybe i didn't search well), so i started adding autocmds like i don't have a tomorrow, this worked fine but this is lazy (maybe it will work for you, if you only programs in one or three languages maximum). So I decided to make this plugin and since the migration of my commands was very fast, it was just copy and paste and everything worked. Currently I don't test many languages anymore and work in the professional environment, but this plugin is still my swiss army knife.
+When I was still in college it was common to try multiple programming languages, at that time I used vscode that with a single plugin allowed me to run many programming languages, I left the ballast that are electron apps and switched to neovim, I searched the Internet and finally i found a lot of plugins, but none of them i liked (maybe i didn't search well), so i started adding autocmds like i don't have a tomorrow, this worked fine but this is lazy (maybe it will work for you, if you only program in one or three languages maximum). So I decided to make this plugin and since the migration of my commands was very fast, it was just copy and paste and everything worked. Currently I don't test many languages anymore and work in the professional environment, but this plugin is still my swiss army knife.
 
 ## Requirements
 
@@ -34,7 +34,7 @@ use 'CRAG666/code_runner.nvim'
 require "paq"{ 'CRAG666/code_runner.nvim'; }
 ```
 
-Please see my config [code_runner.lua](https://github.com/CRAG666/dotfiles/blob/main/config/nvim/lua/plugins/dev/code_runner.lua)
+Please see my config [run_code.lua](https://github.com/CRAG666/dotfiles/blob/main/config/nvim/lua/plugin/run_code.lua)
 
 ## Features
 
