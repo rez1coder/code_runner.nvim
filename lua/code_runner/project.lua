@@ -26,7 +26,7 @@ function Project:ctor(utils)
     end
     self.normalized_projects[norm_path] = {
       data = project_data,
-      length = #norm_path
+      length = #norm_path,
     }
   end
 end
@@ -75,7 +75,7 @@ function Project:setRootPath()
       path = matching_path,
       name = matching_data.name,
       command = matching_data.command,
-      file_name = matching_data.file_name
+      file_name = matching_data.file_name,
     }
   end
 end
