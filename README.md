@@ -14,6 +14,12 @@ When I was still in college it was common to try multiple programming languages,
 
 ## Install
 
+- With **Native**
+
+```lua
+vim.pack.add("https://github.com/CRAG666/code_runner.nvim")
+```
+
 - With [lazy.nvim](https://github.com/folke/lazy.nvim)
 
 ```lua
@@ -252,12 +258,12 @@ require('code_runner').setup({
     c = function()
       vim.ui.input({ prompt = "Arguments (leave empty for none): " }, function(input)
         if not input then return end
-        
+
         local cmd = "cd $dir && gcc $fileName -o /tmp/$fileNameWithoutExt && /tmp/$fileNameWithoutExt"
         if input ~= "" then
           cmd = cmd .. " " .. input
         end
-        
+
         require("code_runner.commands").run_from_fn(cmd)
       end)
     end,
@@ -277,12 +283,12 @@ local function prompt_args_runner(base_cmd)
   return function()
     vim.ui.input({ prompt = "Arguments (leave empty for none): " }, function(input)
       if not input then return end
-      
+
       local cmd = base_cmd
       if input ~= "" then
         cmd = cmd .. " " .. input
       end
-      
+
       require("code_runner.commands").run_from_fn(cmd)
     end)
   end
@@ -416,13 +422,9 @@ project = {
 ## Hooks
 
 These elements are intended to help with those commands that require more complexity.
-For example, implement hot reload on markup documents.
+For example, implement hot reload on markup documents, quarto files, and latex using tectonic.
 
-### Preview PDF
-
-This module allows us to send a command to compile to pdf as well as show the result every time we save the original document.
-
-#### Usage example
+### Usage example
 
 ```lua
 {
@@ -430,54 +432,63 @@ This module allows us to send a command to compile to pdf as well as show the re
     filetype = {
       -- Using tectonic compiler
       tex = function(...)
-        require("code_runner.hooks.ui").select {
-          Single = function()
-            local preview = require "code_runner.hooks.preview_pdf"
-            preview.run {
-              command = "tectonic",
-              args = { "$fileName", "--keep-logs", "-o", "/tmp" },
-              preview_cmd = "zathura --fork",
-              overwrite_output = "/tmp",
-            }
-          end,
+        local tectonic = require('code_runner.hooks.tectonic')
+        require('code_runner.hooks.ui').select({
           Project = function()
-            -- this is my personal config for compiling a project with tectonic
-            -- for example --keep-logs is used to keep the logs of the compilation, see tectonic -X build --help for more info
-            require("code_runner.hooks.tectonic").build("zathura --fork", { "--keep-logs" }) -- Build the project, default command is tectonic -X build
+            tectonic.build()
           end,
-        }
+          ['Project + logs'] = function()
+            tectonic.build('--synctex --keep-logs')
+          end,
+          Single = function()
+            tectonic.single('--synctex --keep-logs -Zsearch-path=/latex')
+          end,
+        })
+      end,
+      -- Enable hot reload for Quarto and open preview
+      quarto = function(...)
+        local quarto = require("code_runner.hooks.utils").create_job_runner({ label = "Quarto", stop_command = "QuartoStop" })
+        local root = vim.fn.expand("%:p")
+        quarto.start(("quarto preview %s --no-browser --port 4444"):format(root))
+        vim.defer_fn(function()
+            vim.fn.jobstart({ "xdg-open" , "http://localhost:4444" }, { detach = true })
+        end, 10000)
       end,
       markdown = function(...)
-        local hook = require "code_runner.hooks.preview_pdf"
-        require("code_runner.hooks.ui").select {
-          Normal = function()
-            hook.run {
-              command = "pandoc",
-              args = { "$fileName", "-o", "$tmpFile", "-t pdf" },
-              preview_cmd = "zathura --fork",
-            }
+        local hr_preview_pdf = require('code_runner.hooks.preview_pdf')
+        require('code_runner.hooks.ui').select({
+          Latex = function()
+            hr_preview_pdf.run({
+              command = 'pandoc',
+              args = { '$fileName', '-o', '$tmpFile', '-t pdf' },
+              preview_cmd = preview_cmd,
+            })
           end,
-          Presentation = function()
-            hook.run {
-              command = "pandoc",
-              args = { "$fileName", "-o", "$tmpFile", "-t beamer" },
-              preview_cmd = "zathura --fork",
-            }
+          Beamer = function()
+            hr_preview_pdf.run({
+              command = 'pandoc',
+              args = { '$fileName', '-o', '$tmpFile', '-t beamer' },
+              preview_cmd = preview_cmd,
+            })
           end,
           Eisvogel = function()
-            hook.run {
-              command = "bash",
-              args = { "./build.sh" },
-              preview_cmd = "zathura --fork",
-              overwrite_output = ".",
-            }
+            hr_preview_pdf.run({
+              command = 'bash',
+              args = { './build.sh' },
+              preview_cmd = preview_cmd,
+              overwrite_output = '.',
+            })
           end,
-        }
+        })
       end,
   ...
 }
 
 ```
+
+## Preview PDF
+
+This module allows us to send a command to compile to pdf as well as show the result every time we save the original document.
 
 ![preview](https://github.com/CRAG666/dotfiles/blob/main/config/nvim/lua/plugins/dev/code_runner.lua)
 
@@ -488,7 +499,7 @@ comfortable for you.
 
 It is important that you take into account that each time you save the original file, the pdf file will be generated.
 
-#### Parameters
+### Parameters
 
 - `command`: Command used to generate the pdf
 - `args`: Arguments of the above command
